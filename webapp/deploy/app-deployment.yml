@@ -1,0 +1,70 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: springboot-postgres-k8s
+  labels:
+    name: springboot-postgres-k8s
+spec:
+  ports:
+    - port: 8080
+
+  selector:
+    app: springboot-postgres-k8s
+  type: LoadBalancer
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: springboot-postgres-k8s
+spec:
+  selector:
+    matchLabels:
+      app: springboot-postgres-k8s
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: springboot-postgres-k8s
+    spec:
+      imagePullSecrets:
+        - name: regcred
+      containers:
+        - name: springboot-postgres-k8s
+          image: 'shubhamkawane0502/webapp:k8s1'
+          imagePullPolicy: "Always"
+          ports:
+            - containerPort: 8080
+          readinessProbe:
+            httpGet:
+              path: /readiness/test
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /liveness/test
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          env:   # Setting Enviornmental Variables
+            - name: DB_HOST   # Setting Database host address from configMap
+              valueFrom:
+                configMapKeyRef:
+                  name: postgres-conf  # name of configMap
+                  key: host
+            - name: DB_NAME  # Setting Database name from configMap
+              valueFrom:
+                configMapKeyRef:
+                  name: postgres-conf
+                  key: name
+            - name: POSTGRES_USER  # Setting Database username from Secret
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secrets # Secret Name
+                  key: postgres_user
+            - name: POSTGRES_PASSWORD # Setting Database password from Secret
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secrets
+                  key: postgres_password

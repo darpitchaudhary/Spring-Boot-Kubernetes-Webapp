@@ -1,0 +1,7 @@
+email:
+  region: ${AWS_REGION:us-east-1}
+  sender: ${EMAIL_SENDER:shubhamkawane10@gmail.com}
+
+aws:
+  access-key: ${AWS_ACCESS_KEY:acf}
+  secret-key: ${AWS_SECRET_KEY:+tebi08C}
